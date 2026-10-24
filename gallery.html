@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Our Special Scrapbook 📸</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Great Vibes, Nunito, Playfair Display, Caveat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Great+Vibes&family=Nunito:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+  <!-- Canvas Confetti Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cottonpink: '#FDF2F4',
+            rosewater: '#FFE4E6',
+            deeppink: '#E11D48',
+            warmcream: '#FFFDF9',
+          },
+          fontFamily: {
+            script: ['"Great Vibes"', 'cursive'],
+            handwritten: ['"Caveat"', 'cursive'],
+            serifTitle: ['"Playfair Display"', 'serif'],
+            body: ['"Nunito"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Floating Heart Background Animation */
+    @keyframes floatUp {
+      0% {
+        transform: translateY(105vh) scale(0.6) rotate(0deg);
+        opacity: 0.8;
+      }
+      50% { opacity: 0.6; }
+      100% {
+        transform: translateY(-10vh) scale(1.1) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    .heart-particle {
+      position: fixed;
+      pointer-events: none;
+      z-index: 0;
+      animation: floatUp 8s linear infinite;
+    }
+
+    /* Polaroid Card Styling with Hover Float */
+    .polaroid {
+      background: #ffffff;
+      padding: 14px 14px 22px 14px;
+      box-shadow: 0 10px 25px rgba(225, 29, 72, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      cursor: pointer;
+      position: relative;
+    }
+    .polaroid:hover {
+      transform: translateY(-8px) scale(1.03) rotate(0deg) !important;
+      box-shadow: 0 18px 35px rgba(225, 29, 72, 0.22);
+      z-index: 20;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-cottonpink via-rosewater to-pink-100 text-stone-700 font-body min-h-screen py-10 px-4 relative overflow-x-hidden selection:bg-rose-200">
+
+  <!-- Floating Hearts Background -->
+  <div id="hearts-container" class="fixed inset-0 overflow-hidden pointer-events-none z-0"></div>
+
+  <div class="relative z-10 max-w-5xl mx-auto">
+
+    <!-- Top Navigation -->
+    <div class="flex items-center justify-between mb-8">
+      <a href="index.html" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/80 hover:bg-white text-deeppink font-bold text-sm rounded-full shadow-sm hover:shadow transition border border-pink-200">
+        ← Back to Memory Capsule
+      </a>
+      <span class="text-xs font-semibold text-pink-500 uppercase tracking-widest bg-white/60 px-3 py-1 rounded-full border border-pink-100">
+        Scrapbook Moments 📸
+      </span>
+    </div>
+
+    <!-- Header Section -->
+    <header class="text-center mb-12">
+      <span class="inline-block px-4 py-1.5 rounded-full bg-white/70 backdrop-blur-md text-deeppink text-xs font-bold tracking-wider uppercase mb-3 shadow-sm border border-pink-200">
+        Every Picture Tells Our Story
+      </span>
+      <h1 class="text-4xl sm:text-6xl font-serifTitle font-bold text-pink-900 tracking-tight mb-2">
+        Our Favorite Moments
+      </h1>
+      <p class="font-script text-3xl sm:text-4xl text-deeppink">
+        Every moment with you is my absolute favorite
+      </p>
+      <p class="text-xs text-stone-400 mt-2 italic">Tap any photo to zoom in 🔍</p>
+    </header>
+
+    <!-- Polaroid Photo Scrapbook Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-2 sm:px-4">
+
+      <!-- Polaroid 1 (Uses your memory1.JPG) -->
+      <div class="polaroid transform -rotate-2" onclick="openLightbox('images/memory1.JPG', 'That uncontrollable laugh ❤️')">
+        <div class="w-full h-64 overflow-hidden rounded bg-pink-50 mb-3">
+          <img 
+            src="images/memory1.JPG" 
+            alt="Memory 1" 
+            onerror="this.src='https://placehold.co/600x600/ffe4e6/e11d48?text=Our+Sweet+Memory'" 
+            class="w-full h-full object-cover"
+          >
+        </div>
+        <p class="font-handwritten text-2xl text-stone-800 text-center">That uncontrollable laugh ❤️</p>
+        <span class="block text-center text-[10px] text-stone-400 font-mono mt-1">#Memory1</span>
+      </div>
+
+      <!-- Polaroid 2 (Embedded Video or Preview of memory2.MP4) -->
+      <div class="polaroid transform rotate-2">
+        <div class="w-full h-64 overflow-hidden rounded bg-black/10 mb-3">
+          <video 
+            autoplay 
+            muted 
+            loop 
+            playsinline 
+            controls 
+            class="w-full h-full object-cover rounded"
+          >
+            <source src="images/memory2.MP4" type="video/mp4" />
+            Your browser does not support video.
+          </video>
+        </div>
+        <p class="font-handwritten text-2xl text-stone-800 text-center">Quiet Moments Together ✨</p>
+        <span class="block text-center text-[10px] text-stone-400 font-mono mt-1">#Memory2</span>
+      </div>
+
+      <!-- Polaroid 3 (Uses your memory3.JPG) -->
+      <div class="polaroid transform -rotate-1" onclick="openLightbox('images/memory3.JPG', 'Hand in hand anywhere ✨')">
+        <div class="w-full h-64 overflow-hidden rounded bg-pink-50 mb-3">
+          <img 
+            src="images/memory3.JPG" 
+            alt="Memory 3" 
+            onerror="this.src='https://placehold.co/600x600/ffe4e6/e11d48?text=Hand+in+Hand'" 
+            class="w-full h-full object-cover"
+          >
+        </div>
+        <p class="font-handwritten text-2xl text-stone-800 text-center">Hand in hand anywhere ✨</p>
+        <span class="block text-center text-[10px] text-stone-400 font-mono mt-1">#Memory3</span>
+      </div>
+
+      <!-- Polaroid 4 (Slot for future photo or additional memory) -->
+      <div class="polaroid transform rotate-3" onclick="openLightbox('images/photo1.jpg', 'Cafe talks & warm coffee ☕')">
+        <div class="w-full h-64 overflow-hidden rounded bg-pink-50 mb-3">
+          <img 
+            src="images/photo1.jpg" 
+            alt="Memory 4" 
+            onerror="this.src='https://placehold.co/600x600/ffe4e6/e11d48?text=Add+Photo+Here'" 
+            class="w-full h-full object-cover"
+          >
+        </div>
+        <p class="font-handwritten text-2xl text-stone-800 text-center">Cafe talks & stolen glances ☕</p>
+        <span class="block text-center text-[10px] text-stone-400 font-mono mt-1">#SpecialDate</span>
+      </div>
+
+      <!-- Polaroid 5 -->
+      <div class="polaroid transform -rotate-2" onclick="openLightbox('images/photo2.jpg', 'My favorite view in the universe 🌸')">
+        <div class="w-full h-64 overflow-hidden rounded bg-pink-50 mb-3">
+          <img 
+            src="images/photo2.jpg" 
+            alt="Memory 5" 
+            onerror="this.src='https://placehold.co/600x600/ffe4e6/e11d48?text=Add+Photo+Here'" 
+            class="w-full h-full object-cover"
+          >
+        </div>
+        <p class="font-handwritten text-2xl text-stone-800 text-center">My favorite view in the universe 🌸</p>
+        <span class="block text-center text-[10px] text-stone-400 font-mono mt-1">#PrettyKuchipu</span>
+      </div>
+
+      <!-- Polaroid 6 -->
+      <div class="polaroid transform rotate-1" onclick="openLightbox('images/photo3.jpg', 'To a lifetime of memories ahead 🥂')">
+        <div class="w-full h-64 overflow-hidden rounded bg-pink-50 mb-3">
+          <img 
+            src="images/photo3.jpg" 
+            alt="Memory 6" 
+            onerror="this.src='https://placehold.co/600x600/ffe4e6/e11d48?text=Add+Photo+Here'" 
+            class="w-full h-full object-cover"
+          >
+        </div>
+        <p class="font-handwritten text-2xl text-stone-800 text-center">To many more chapters together 🥂</p>
+        <span class="block text-center text-[10px] text-stone-400 font-mono mt-1">#ForeverUs</span>
+      </div>
+
+    </div>
+
+    <!-- Bottom Action Button -->
+    <div class="text-center mt-16 mb-8">
+      <a href="index.html" class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-pink-500 to-deeppink text-white font-bold rounded-2xl shadow-lg hover:shadow-pink-300/50 hover:brightness-105 active:scale-95 transition-all">
+        <span>← Return to Capsule</span>
+        <span class="text-lg">💌</span>
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Zoom Modal (Lightbox) -->
+  <div id="lightbox" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-4 cursor-pointer" onclick="closeLightbox()">
+    <div class="relative max-w-2xl max-h-[85vh] p-3 bg-white rounded-2xl shadow-2xl flex flex-col items-center" onclick="event.stopPropagation()">
+      <img id="lightbox-img" src="" alt="Enlarged Memory" class="max-h-[68vh] w-auto rounded-xl object-contain">
+      <p id="lightbox-caption" class="font-handwritten text-2xl text-stone-800 mt-3 text-center"></p>
+      <button onclick="closeLightbox()" class="mt-2 text-xs text-stone-400 underline cursor-pointer">Tap outside to close</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Floating Hearts Background
+    function createFloatingHearts() {
+      const container = document.getElementById('hearts-container');
+      const heartEmojis = ['❤️', '✨', '🌸', '💖', '🫶🏻', '🤍', '💌'];
+      for (let i = 0; i < 20; i++) {
+        const heart = document.createElement('div');
+        heart.className = 'heart-particle select-none';
+        heart.innerText = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+        heart.style.left = Math.random() * 95 + 'vw';
+        heart.style.animationDuration = (6 + Math.random() * 8) + 's';
+        heart.style.animationDelay = (Math.random() * 5) + 's';
+        heart.style.fontSize = (16 + Math.random() * 20) + 'px';
+        container.appendChild(heart);
+      }
+    }
+    createFloatingHearts();
+
+    // Lightbox Modal Functions
+    function openLightbox(imgSrc, captionText) {
+      document.getElementById('lightbox-img').src = imgSrc;
+      document.getElementById('lightbox-caption').innerText = captionText;
+      document.getElementById('lightbox').classList.remove('hidden');
+
+      if (typeof confetti === 'function') {
+        confetti({
+          particleCount: 25,
+          spread: 50,
+          origin: { y: 0.8 }
+        });
+      }
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
