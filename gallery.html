@@ -2,26 +2,33 @@
 <html lang="en">
 <head>
   <!-- iOS Web App Capability (Opens fullscreen like a native app) -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Kuchipu ❤️">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Kuchipu ❤️">
 
-<!-- iOS Home Screen App Icon -->
-<link rel="apple-touch-icon" sizes="180x180" href="images/app-icon.png">
-<link rel="icon" type="image/png" href="images/app-icon.png">
-<!-- Theme Color for Safari Mobile Toolbar -->
-<meta name="theme-color" content="#FFE4E6">
+  <!-- iOS Home Screen App Icon -->
+  <link rel="apple-touch-icon" sizes="180x180" href="images/app-icon.png">
+  <link rel="icon" type="image/png" href="images/app-icon.png">
+  <meta name="theme-color" content="#FFE4E6">
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Our Special Scrapbook 📸</title>
+  
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts: Great Vibes, Nunito, Playfair Display, Caveat -->
+  
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Great+Vibes&family=Nunito:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+  
   <!-- Canvas Confetti Library -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- Firebase App & Firestore (Free Tier / No Storage Bucket Required) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <script>
     tailwind.config = {
@@ -70,13 +77,13 @@
       background: #ffffff;
       padding: 14px 14px 22px 14px;
       box-shadow: 0 10px 25px rgba(225, 29, 72, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05);
-      border-radius: 8px;
+      border-radius: 12px;
       transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       cursor: pointer;
       position: relative;
     }
     .polaroid:hover {
-      transform: translateY(-8px) scale(1.03) rotate(0deg) !important;
+      transform: translateY(-6px) scale(1.02);
       box-shadow: 0 18px 35px rgba(225, 29, 72, 0.22);
       z-index: 20;
     }
@@ -94,15 +101,17 @@
       <a href="index.html" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/80 hover:bg-white text-deeppink font-bold text-sm rounded-full shadow-sm hover:shadow transition border border-pink-200">
         ← Back to Memory Capsule
       </a>
-      <span class="text-xs font-semibold text-pink-500 uppercase tracking-widest bg-white/60 px-3 py-1 rounded-full border border-pink-100">
-        Scrapbook Moments 📸
-      </span>
+      
+      <!-- ADD PHOTO BUTTON -->
+      <button onclick="toggleUploadDrawer()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-pink-500 to-deeppink text-white font-bold text-sm rounded-full shadow-md hover:brightness-105 active:scale-95 transition">
+        <span>+ Add Memory</span> 📸
+      </button>
     </div>
 
     <!-- Header Section -->
-    <header class="text-center mb-12">
+    <header class="text-center mb-10">
       <span class="inline-block px-4 py-1.5 rounded-full bg-white/70 backdrop-blur-md text-deeppink text-xs font-bold tracking-wider uppercase mb-3 shadow-sm border border-pink-200">
-        Every Picture Tells Our Story
+        Our Shared Scrapbook
       </span>
       <h1 class="text-4xl sm:text-6xl font-serifTitle font-bold text-pink-900 tracking-tight mb-2">
         Our Favorite Moments
@@ -113,98 +122,50 @@
       <p class="text-xs text-stone-400 mt-2 italic">Tap any photo to zoom in 🔍</p>
     </header>
 
-    <!-- Polaroid Photo Scrapbook Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-2 sm:px-4">
-
-      <!-- Polaroid 1 (Uses your memory1.JPG) -->
-      <div class="polaroid transform -rotate-2" onclick="openLightbox('images/memory1.JPG', 'That uncontrollable laugh ❤️')">
-        <div class="w-full h-64 overflow-hidden rounded bg-pink-50 mb-3">
-          <img 
-            src="images/memory1.JPG" 
-            alt="Memory 1" 
-            onerror="this.src='https://placehold.co/600x600/ffe4e6/e11d48?text=Our+Sweet+Memory'" 
-            class="w-full h-full object-cover"
-          >
-        </div>
-        <p class="font-handwritten text-2xl text-stone-800 text-center">That uncontrollable laugh ❤️</p>
-        <span class="block text-center text-[10px] text-stone-400 font-mono mt-1">#Memory1</span>
+    <!-- UPLOAD DRAWER MODAL -->
+    <div id="upload-drawer" class="hidden mb-12 bg-white/95 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-2xl border border-pink-200 max-w-lg mx-auto transition-all">
+      <div class="flex justify-between items-center mb-5">
+        <h3 class="font-serifTitle font-bold text-xl text-stone-800">Add a New Memory</h3>
+        <button onclick="toggleUploadDrawer()" class="text-stone-400 hover:text-deeppink font-bold text-lg">✕</button>
       </div>
 
-      <!-- Polaroid 2 (Embedded Video or Preview of memory2.MP4) -->
-      <div class="polaroid transform rotate-2">
-        <div class="w-full h-64 overflow-hidden rounded bg-black/10 mb-3">
-          <video 
-            autoplay 
-            muted 
-            loop 
-            playsinline 
-            controls 
-            class="w-full h-full object-cover rounded"
-          >
-            <source src="images/memory2.MP4" type="video/mp4" />
-            Your browser does not support video.
-          </video>
+      <div class="space-y-4">
+        <!-- Choose or snap a photo -->
+        <div>
+          <label class="block text-xs font-bold text-stone-600 mb-1">Select Photo / Take Picture</label>
+          <input type="file" id="photo-input" accept="image/*" class="w-full text-xs text-stone-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-pink-100 file:text-deeppink hover:file:bg-pink-200 cursor-pointer" />
         </div>
-        <p class="font-handwritten text-2xl text-stone-800 text-center">Quiet Moments Together ✨</p>
-        <span class="block text-center text-[10px] text-stone-400 font-mono mt-1">#Memory2</span>
-      </div>
 
-      <!-- Polaroid 3 (Uses your memory3.JPG) -->
-      <div class="polaroid transform -rotate-1" onclick="openLightbox('images/memory3.JPG', 'Hand in hand anywhere ✨')">
-        <div class="w-full h-64 overflow-hidden rounded bg-pink-50 mb-3">
-          <img 
-            src="images/memory3.JPG" 
-            alt="Memory 3" 
-            onerror="this.src='https://placehold.co/600x600/ffe4e6/e11d48?text=Hand+in+Hand'" 
-            class="w-full h-full object-cover"
-          >
+        <!-- Caption -->
+        <div>
+          <label class="block text-xs font-bold text-stone-600 mb-1">Sweet Note or Caption</label>
+          <input type="text" id="caption-input" placeholder="e.g. Unplanned dessert date..." class="w-full px-3 py-2 text-sm border border-pink-200 rounded-xl focus:outline-none focus:border-deeppink" />
         </div>
-        <p class="font-handwritten text-2xl text-stone-800 text-center">Hand in hand anywhere ✨</p>
-        <span class="block text-center text-[10px] text-stone-400 font-mono mt-1">#Memory3</span>
-      </div>
 
-      <!-- Polaroid 4 (Slot for future photo or additional memory) -->
-      <div class="polaroid transform rotate-3" onclick="openLightbox('images/photo1.jpg', 'Cafe talks & warm coffee ☕')">
-        <div class="w-full h-64 overflow-hidden rounded bg-pink-50 mb-3">
-          <img 
-            src="images/photo1.jpg" 
-            alt="Memory 4" 
-            onerror="this.src='https://placehold.co/600x600/ffe4e6/e11d48?text=Add+Photo+Here'" 
-            class="w-full h-full object-cover"
-          >
+        <!-- Location name + Auto GPS -->
+        <div>
+          <label class="block text-xs font-bold text-stone-600 mb-1">Location / Landmark</label>
+          <div class="flex gap-2">
+            <input type="text" id="location-input" placeholder="e.g. Our favorite cafe" class="w-full px-3 py-2 text-sm border border-pink-200 rounded-xl focus:outline-none focus:border-deeppink" />
+            <button onclick="detectGPSLocation()" type="button" class="px-3 py-2 bg-pink-100 hover:bg-pink-200 text-deeppink text-xs font-bold rounded-xl whitespace-nowrap transition">
+              📍 Auto-GPS
+            </button>
+          </div>
         </div>
-        <p class="font-handwritten text-2xl text-stone-800 text-center">Cafe talks & stolen glances ☕</p>
-        <span class="block text-center text-[10px] text-stone-400 font-mono mt-1">#SpecialDate</span>
-      </div>
 
-      <!-- Polaroid 5 -->
-      <div class="polaroid transform -rotate-2" onclick="openLightbox('images/photo2.jpg', 'My favorite view in the universe 🌸')">
-        <div class="w-full h-64 overflow-hidden rounded bg-pink-50 mb-3">
-          <img 
-            src="images/photo2.jpg" 
-            alt="Memory 5" 
-            onerror="this.src='https://placehold.co/600x600/ffe4e6/e11d48?text=Add+Photo+Here'" 
-            class="w-full h-full object-cover"
-          >
-        </div>
-        <p class="font-handwritten text-2xl text-stone-800 text-center">My favorite view in the universe 🌸</p>
-        <span class="block text-center text-[10px] text-stone-400 font-mono mt-1">#PrettyKuchipu</span>
+        <!-- Submit Button -->
+        <button id="upload-btn" onclick="saveMemory()" class="w-full py-3 bg-gradient-to-r from-pink-500 to-deeppink text-white font-bold text-sm rounded-xl shadow hover:brightness-105 active:scale-95 transition">
+          Save to Scrapbook ✨
+        </button>
+        <p id="upload-status" class="text-xs text-center text-deeppink font-bold hidden"></p>
       </div>
+    </div>
 
-      <!-- Polaroid 6 -->
-      <div class="polaroid transform rotate-1" onclick="openLightbox('images/photo3.jpg', 'To a lifetime of memories ahead 🥂')">
-        <div class="w-full h-64 overflow-hidden rounded bg-pink-50 mb-3">
-          <img 
-            src="images/photo3.jpg" 
-            alt="Memory 6" 
-            onerror="this.src='https://placehold.co/600x600/ffe4e6/e11d48?text=Add+Photo+Here'" 
-            class="w-full h-full object-cover"
-          >
-        </div>
-        <p class="font-handwritten text-2xl text-stone-800 text-center">To many more chapters together 🥂</p>
-        <span class="block text-center text-[10px] text-stone-400 font-mono mt-1">#ForeverUs</span>
+    <!-- LIVE CLOUD SCRAPBOOK GRID (Synched across both phones) -->
+    <div id="scrapbook-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-2 sm:px-4">
+      <div class="col-span-full text-center py-12 text-stone-400">
+        Loading memories... 🌸
       </div>
-
     </div>
 
     <!-- Bottom Action Button -->
@@ -228,7 +189,169 @@
 
   <!-- Scripts -->
   <script>
-    // Floating Hearts Background
+    // ====================================================
+    // 1. FIREBASE CONFIGURATION (Paste your project keys here)
+    // ====================================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyCM1Ut7EPj1NXsHV5t3MH8c0BJK8glj6ok",
+  authDomain: "time-capsule-kuchipu.firebaseapp.com",
+  projectId: "time-capsule-kuchipu",
+  storageBucket: "time-capsule-kuchipu.firebasestorage.app",
+  messagingSenderId: "199495526518",
+  appId: "1:199495526518:web:2fc4e751309f442f289757",
+  measurementId: "G-TDKCYZ39VY"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function toggleUploadDrawer() {
+      document.getElementById('upload-drawer').classList.toggle('hidden');
+    }
+
+    // ====================================================
+    // 2. AUTO-GPS LOCATION DETECTOR
+    // ====================================================
+    function detectGPSLocation() {
+      const locInput = document.getElementById('location-input');
+      if (!navigator.geolocation) {
+        alert("Location is not supported on this browser.");
+        return;
+      }
+      locInput.value = "Fetching GPS...";
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+            const data = await res.json();
+            const place = data.address.suburb || data.address.city || data.address.town || data.address.state || "Special Place";
+            locInput.value = `📍 ${place}`;
+          } catch {
+            locInput.value = `📍 ${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+          }
+        },
+        () => { locInput.value = "📍 Location access denied"; }
+      );
+    }
+
+    // ====================================================
+    // 3. IMAGE COMPRESSION & FIRESTORE SAVE (Free Tier Safe)
+    // ====================================================
+    function processImage(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+          const img = new Image();
+          img.src = event.target.result;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 800; // Keeps photo lightweight and quick to load
+            const scaleSize = MAX_WIDTH / img.width;
+            canvas.width = MAX_WIDTH;
+            canvas.height = img.height * scaleSize;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', 0.7)); // Compressed JPEG format
+          };
+          img.onerror = (err) => reject(err);
+        };
+        reader.onerror = (err) => reject(err);
+      });
+    }
+
+    async function saveMemory() {
+      const fileInput = document.getElementById('photo-input');
+      const caption = document.getElementById('caption-input').value.trim();
+      const location = document.getElementById('location-input').value.trim() || "Everywhere with you";
+      const btn = document.getElementById('upload-btn');
+      const status = document.getElementById('upload-status');
+
+      if (!fileInput.files[0]) {
+        alert("Please select a picture first!");
+        return;
+      }
+
+      const file = fileInput.files[0];
+      btn.disabled = true;
+      btn.innerText = "Saving photo...";
+      status.classList.remove('hidden');
+      status.innerText = "Adding to your scrapbook... ⏳";
+
+      try {
+        const base64Image = await processImage(file);
+
+        await db.collection("scrapbook").add({
+          imageUrl: base64Image,
+          caption: caption || "Favorite moments ❤️",
+          location: location,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        fileInput.value = "";
+        document.getElementById('caption-input').value = "";
+        document.getElementById('location-input').value = "";
+        status.innerText = "Saved successfully! 🎉";
+        btn.disabled = false;
+        btn.innerText = "Save to Scrapbook ✨";
+        
+        setTimeout(() => {
+          status.classList.add('hidden');
+          toggleUploadDrawer();
+        }, 1200);
+
+        if (typeof confetti === 'function') confetti({ particleCount: 35, spread: 60 });
+
+      } catch (err) {
+        console.error(err);
+        alert("Error saving: " + err.message);
+        btn.disabled = false;
+        btn.innerText = "Save to Scrapbook ✨";
+        status.classList.add('hidden');
+      }
+    }
+
+    // ====================================================
+    // 4. REAL-TIME SYNC (Both phones display new uploads instantly)
+    // ====================================================
+    db.collection("scrapbook")
+      .orderBy("timestamp", "desc")
+      .onSnapshot((snapshot) => {
+        const grid = document.getElementById('scrapbook-grid');
+        grid.innerHTML = "";
+
+        if (snapshot.empty) {
+          grid.innerHTML = `
+            <div class="col-span-full text-center py-12 text-stone-400">
+              No memories uploaded yet! Tap "+ Add Memory" above to snap or choose your first photo. 🌸
+            </div>`;
+          return;
+        }
+
+        snapshot.forEach((doc) => {
+          const item = doc.data();
+          const polaroid = document.createElement('div');
+          polaroid.className = "polaroid transform hover:rotate-0 transition duration-300";
+          polaroid.onclick = () => openLightbox(item.imageUrl, item.caption);
+          polaroid.innerHTML = `
+            <div class="w-full h-64 overflow-hidden rounded-lg bg-pink-50 mb-3">
+              <img src="${item.imageUrl}" alt="Memory" class="w-full h-full object-cover">
+            </div>
+            <p class="font-handwritten text-2xl text-stone-800 text-center">${item.caption}</p>
+            <div class="flex items-center justify-center gap-1 text-[11px] text-deeppink font-semibold mt-1">
+              <span>${item.location}</span>
+            </div>
+          `;
+          grid.appendChild(polaroid);
+        });
+      });
+
+    // ====================================================
+    // 5. FLOATING HEARTS & LIGHTBOX
+    // ====================================================
     function createFloatingHearts() {
       const container = document.getElementById('hearts-container');
       const heartEmojis = ['❤️', '✨', '🌸', '💖', '🫶🏻', '🤍', '💌'];
@@ -245,18 +368,13 @@
     }
     createFloatingHearts();
 
-    // Lightbox Modal Functions
     function openLightbox(imgSrc, captionText) {
       document.getElementById('lightbox-img').src = imgSrc;
       document.getElementById('lightbox-caption').innerText = captionText;
       document.getElementById('lightbox').classList.remove('hidden');
 
       if (typeof confetti === 'function') {
-        confetti({
-          particleCount: 25,
-          spread: 50,
-          origin: { y: 0.8 }
-        });
+        confetti({ particleCount: 25, spread: 50, origin: { y: 0.8 } });
       }
     }
 
