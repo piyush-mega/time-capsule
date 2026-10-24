@@ -75,11 +75,10 @@
     /* Polaroid Card Styling */
     .polaroid {
       background: #ffffff;
-      padding: 14px 14px 22px 14px;
+      padding: 14px 14px 18px 14px;
       box-shadow: 0 10px 25px rgba(225, 29, 72, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05);
       border-radius: 12px;
       transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      cursor: pointer;
       position: relative;
     }
     .polaroid:hover {
@@ -246,11 +245,11 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Cache of current items for quick editing
+    // Cache of current items for editing
     const memoryCache = {};
 
     // ====================================================
-    // NAVIGATION & DRAWER TOGGLES
+    // NAVIGATION & MODAL CONTROLS
     // ====================================================
     function goBack() {
       if (document.referrer && document.referrer.includes(window.location.host)) {
@@ -283,7 +282,7 @@
     }
 
     // ====================================================
-    // 2. AUTO-GPS LOCATION DETECTOR (Supports both inputs)
+    // 2. AUTO-GPS LOCATION DETECTOR
     // ====================================================
     function detectGPSLocation(targetInputId) {
       const locInput = document.getElementById(targetInputId);
@@ -310,7 +309,7 @@
     }
 
     // ====================================================
-    // 3. IMAGE COMPRESSION (Base64)
+    // 3. IMAGE COMPRESSION (Base64 for Free Firestore)
     // ====================================================
     function processImage(file) {
       return new Promise((resolve, reject) => {
@@ -391,7 +390,7 @@
     }
 
     // ====================================================
-    // 5. UPDATE EXISTING MEMORY (Edit Action)
+    // 5. UPDATE EXISTING MEMORY (Edit)
     // ====================================================
     async function saveEditedMemory() {
       const docId = document.getElementById('edit-doc-id').value;
@@ -409,7 +408,6 @@
       try {
         let finalImage = document.getElementById('edit-existing-image').value;
 
-        // If user picked a replacement image
         if (fileInput.files && fileInput.files[0]) {
           finalImage = await processImage(fileInput.files[0]);
         }
@@ -452,14 +450,13 @@
       }
     }
 
-    // Helper for safe lightbox escaping
     function escapeHtmlQuotes(str) {
       if (!str) return "";
       return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
     }
 
     // ====================================================
-    // 7. REAL-TIME SYNC LISTENER
+    // 7. REAL-TIME SYNC (With Visible Edit & Delete Toolbar)
     // ====================================================
     db.collection("scrapbook")
       .orderBy("timestamp", "desc")
@@ -478,42 +475,41 @@
         snapshot.forEach((doc) => {
           const item = doc.data();
           const docId = doc.id;
-          memoryCache[docId] = item; // Store in cache for edit modal
+          memoryCache[docId] = item;
 
           const polaroid = document.createElement('div');
-          polaroid.className = "polaroid relative group transform hover:rotate-0 transition duration-300";
+          polaroid.className = "polaroid flex flex-col justify-between";
           
           polaroid.innerHTML = `
-            <!-- Top Action Controls (Edit & Delete) -->
-            <div class="absolute top-3 right-3 z-30 flex items-center gap-1.5 opacity-80 group-hover:opacity-100 transition">
-              <!-- Edit Button -->
-              <button 
-                onclick="event.stopPropagation(); openEditModal('${docId}')" 
-                title="Edit memory" 
-                class="w-7 h-7 rounded-full bg-white/90 hover:bg-white text-stone-600 hover:text-deeppink shadow flex items-center justify-center text-xs transition cursor-pointer"
-              >
-                ✏️
-              </button>
-              
-              <!-- Delete Button -->
-              <button 
-                onclick="event.stopPropagation(); deleteMemory('${docId}')" 
-                title="Delete memory" 
-                class="w-7 h-7 rounded-full bg-white/90 hover:bg-white text-stone-600 hover:text-red-500 shadow flex items-center justify-center text-xs transition cursor-pointer"
-              >
-                🗑️
-              </button>
-            </div>
-
-            <!-- Card Content -->
-            <div onclick="openLightbox('${item.imageUrl}', '${escapeHtmlQuotes(item.caption)}')">
+            <!-- Clickable Picture & Note Area -->
+            <div onclick="openLightbox('${item.imageUrl}', '${escapeHtmlQuotes(item.caption)}')" class="cursor-pointer">
               <div class="w-full h-64 overflow-hidden rounded-lg bg-pink-50 mb-3">
                 <img src="${item.imageUrl}" alt="Memory" class="w-full h-full object-cover">
               </div>
-              <p class="font-handwritten text-2xl text-stone-800 text-center">${item.caption}</p>
-              <div class="flex items-center justify-center gap-1 text-[11px] text-deeppink font-semibold mt-1">
+              <p class="font-handwritten text-2xl text-stone-800 text-center leading-snug">${item.caption}</p>
+              <div class="flex items-center justify-center gap-1 text-[11px] text-deeppink font-semibold mt-1 mb-2">
                 <span>${item.location}</span>
               </div>
+            </div>
+
+            <!-- Bottom Action Toolbar (Permanently Visible) -->
+            <div class="pt-2 mt-2 border-t border-pink-100 flex items-center justify-end gap-2">
+              <button 
+                type="button"
+                onclick="event.stopPropagation(); openEditModal('${docId}')" 
+                title="Edit this memory"
+                class="px-2.5 py-1 bg-pink-50 hover:bg-pink-100 text-deeppink text-xs font-bold rounded-lg border border-pink-200 shadow-sm flex items-center gap-1 transition active:scale-95 cursor-pointer"
+              >
+                <span>✏️</span> Edit
+              </button>
+              <button 
+                type="button"
+                onclick="event.stopPropagation(); deleteMemory('${docId}')" 
+                title="Delete this memory"
+                class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-red-600 text-xs font-bold rounded-lg border border-rose-200 shadow-sm flex items-center gap-1 transition active:scale-95 cursor-pointer"
+              >
+                <span>🗑️</span> Delete
+              </button>
             </div>
           `;
           grid.appendChild(polaroid);
