@@ -701,6 +701,7 @@
 
         setTimeout(() => {
           const overlay = document.getElementById('gate-overlay');
+          sessionStorage.setItem('kuchipu_unlocked', 'true');
           overlay.classList.add('opacity-0', 'pointer-events-none', 'scale-105');
           setTimeout(() => overlay.remove(), 750);
         }, 650);
@@ -713,7 +714,13 @@
         document.getElementById('hint-drawer').classList.remove('hidden');
       }
     }
-
+// Auto-remove gate if already unlocked during this session
+  if (sessionStorage.getItem('kuchipu_unlocked') === 'true') {
+    const gate = document.getElementById('gate-overlay');
+    if (gate) {
+      gate.remove();
+    }
+  }
     // --- 3. Background Floating Hearts Generator ---
     function createFloatingHearts() {
       const container = document.getElementById('hearts-container');
