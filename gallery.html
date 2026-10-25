@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- iOS Web App Capability (Opens fullscreen like a native app) -->
+  <!-- iOS Web App Capability -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Kuchipu ❤️">
@@ -26,7 +26,7 @@
   <!-- Canvas Confetti Library -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-  <!-- Firebase App & Firestore (Free Tier / No Storage Bucket Required) -->
+  <!-- Firebase App & Firestore -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -52,7 +52,6 @@
   </script>
 
   <style>
-    /* Floating Heart Background Animation */
     @keyframes floatUp {
       0% {
         transform: translateY(105vh) scale(0.6) rotate(0deg);
@@ -72,7 +71,6 @@
       animation: floatUp 8s linear infinite;
     }
 
-    /* Polaroid Card Styling */
     .polaroid {
       background: #ffffff;
       padding: 14px 14px 18px 14px;
@@ -97,12 +95,12 @@
 
     <!-- Top Navigation -->
     <div class="flex items-center justify-between mb-8">
-      <button onclick="goBack()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/80 hover:bg-white text-deeppink font-bold text-sm rounded-full shadow-sm hover:shadow active:scale-95 transition border border-pink-200 cursor-pointer">
+      <a href="index.html" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/80 hover:bg-white text-deeppink font-bold text-sm rounded-full shadow-sm hover:shadow active:scale-95 transition border border-pink-200 cursor-pointer">
         ← Back to Memory Capsule
-      </button>
+      </a>
       
       <!-- ADD PHOTO BUTTON -->
-      <button onclick="toggleUploadDrawer()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-pink-500 to-deeppink text-white font-bold text-sm rounded-full shadow-md hover:brightness-105 active:scale-95 transition cursor-pointer">
+      <button type="button" onclick="toggleUploadDrawer()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-pink-500 to-deeppink text-white font-bold text-sm rounded-full shadow-md hover:brightness-105 active:scale-95 transition cursor-pointer">
         <span>+ Add Memory</span> 📸
       </button>
     </div>
@@ -125,7 +123,7 @@
     <div id="upload-drawer" class="hidden mb-12 bg-white/95 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-2xl border border-pink-200 max-w-lg mx-auto transition-all">
       <div class="flex justify-between items-center mb-5">
         <h3 class="font-serifTitle font-bold text-xl text-stone-800">Add a New Memory</h3>
-        <button onclick="toggleUploadDrawer()" class="text-stone-400 hover:text-deeppink font-bold text-lg">✕</button>
+        <button type="button" onclick="toggleUploadDrawer()" class="text-stone-400 hover:text-deeppink font-bold text-lg">✕</button>
       </div>
 
       <div class="space-y-4">
@@ -143,13 +141,13 @@
           <label class="block text-xs font-bold text-stone-600 mb-1">Location / Landmark</label>
           <div class="flex gap-2">
             <input type="text" id="location-input" placeholder="e.g. Our favorite cafe" class="w-full px-3 py-2 text-sm border border-pink-200 rounded-xl focus:outline-none focus:border-deeppink" />
-            <button onclick="detectGPSLocation('location-input')" type="button" class="px-3 py-2 bg-pink-100 hover:bg-pink-200 text-deeppink text-xs font-bold rounded-xl whitespace-nowrap transition">
+            <button onclick="detectGPSLocation('location-input')" type="button" class="px-3 py-2 bg-pink-100 hover:bg-pink-200 text-deeppink text-xs font-bold rounded-xl whitespace-nowrap transition cursor-pointer">
               📍 Auto-GPS
             </button>
           </div>
         </div>
 
-        <button id="upload-btn" onclick="saveMemory()" class="w-full py-3 bg-gradient-to-r from-pink-500 to-deeppink text-white font-bold text-sm rounded-xl shadow hover:brightness-105 active:scale-95 transition">
+        <button type="button" id="upload-btn" onclick="saveMemory()" class="w-full py-3 bg-gradient-to-r from-pink-500 to-deeppink text-white font-bold text-sm rounded-xl shadow hover:brightness-105 active:scale-95 transition cursor-pointer">
           Save to Scrapbook ✨
         </button>
         <p id="upload-status" class="text-xs text-center text-deeppink font-bold hidden"></p>
@@ -161,14 +159,13 @@
       <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-pink-200 relative" onclick="event.stopPropagation()">
         <div class="flex justify-between items-center mb-5">
           <h3 class="font-serifTitle font-bold text-xl text-stone-800">Edit Memory ✏️</h3>
-          <button onclick="closeEditModal()" class="text-stone-400 hover:text-deeppink font-bold text-lg">✕</button>
+          <button type="button" onclick="closeEditModal()" class="text-stone-400 hover:text-deeppink font-bold text-lg">✕</button>
         </div>
 
         <input type="hidden" id="edit-doc-id" />
         <input type="hidden" id="edit-existing-image" />
 
         <div class="space-y-4">
-          <!-- Current Image Preview with Option to Replace -->
           <div>
             <label class="block text-xs font-bold text-stone-600 mb-1">Photo Preview</label>
             <div class="w-full h-36 rounded-xl overflow-hidden bg-pink-50 mb-2 border border-pink-100">
@@ -187,13 +184,13 @@
             <label class="block text-xs font-bold text-stone-600 mb-1">Location / Landmark</label>
             <div class="flex gap-2">
               <input type="text" id="edit-location-input" class="w-full px-3 py-2 text-sm border border-pink-200 rounded-xl focus:outline-none focus:border-deeppink" />
-              <button onclick="detectGPSLocation('edit-location-input')" type="button" class="px-3 py-2 bg-pink-100 hover:bg-pink-200 text-deeppink text-xs font-bold rounded-xl whitespace-nowrap transition">
+              <button onclick="detectGPSLocation('edit-location-input')" type="button" class="px-3 py-2 bg-pink-100 hover:bg-pink-200 text-deeppink text-xs font-bold rounded-xl whitespace-nowrap transition cursor-pointer">
                 📍 Auto-GPS
               </button>
             </div>
           </div>
 
-          <button id="edit-save-btn" onclick="saveEditedMemory()" class="w-full py-3 bg-gradient-to-r from-pink-500 to-deeppink text-white font-bold text-sm rounded-xl shadow hover:brightness-105 active:scale-95 transition">
+          <button type="button" id="edit-save-btn" onclick="saveEditedMemory()" class="w-full py-3 bg-gradient-to-r from-pink-500 to-deeppink text-white font-bold text-sm rounded-xl shadow hover:brightness-105 active:scale-95 transition cursor-pointer">
             Update Memory ✨
           </button>
           <p id="edit-status" class="text-xs text-center text-deeppink font-bold hidden"></p>
@@ -210,10 +207,10 @@
 
     <!-- Bottom Action Button -->
     <div class="text-center mt-16 mb-8">
-      <button onclick="goBack()" class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-pink-500 to-deeppink text-white font-bold rounded-2xl shadow-lg hover:shadow-pink-300/50 hover:brightness-105 active:scale-95 transition-all cursor-pointer">
+      <a href="index.html" class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-pink-500 to-deeppink text-white font-bold rounded-2xl shadow-lg hover:shadow-pink-300/50 hover:brightness-105 active:scale-95 transition-all cursor-pointer">
         <span>← Return to Capsule</span>
         <span class="text-lg">💌</span>
-      </button>
+      </a>
     </div>
 
   </div>
@@ -223,15 +220,13 @@
     <div class="relative max-w-2xl max-h-[85vh] p-3 bg-white rounded-2xl shadow-2xl flex flex-col items-center" onclick="event.stopPropagation()">
       <img id="lightbox-img" src="" alt="Enlarged Memory" class="max-h-[68vh] w-auto rounded-xl object-contain">
       <p id="lightbox-caption" class="font-handwritten text-2xl text-stone-800 mt-3 text-center"></p>
-      <button onclick="closeLightbox()" class="mt-2 text-xs text-stone-400 underline cursor-pointer">Tap outside to close</button>
+      <button type="button" onclick="closeLightbox()" class="mt-2 text-xs text-stone-400 underline cursor-pointer">Tap outside to close</button>
     </div>
   </div>
 
   <!-- Scripts -->
   <script>
-    // ====================================================
-    // 1. FIREBASE CONFIGURATION
-    // ====================================================
+    // 1. Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCM1Ut7EPj1NXsHV5t3MH8c0BJK8glj6ok",
       authDomain: "time-capsule-kuchipu.firebaseapp.com",
@@ -245,25 +240,11 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // ====================================================
-    // 2. CLOUDINARY CONFIGURATION (25 GB Free Storage)
-    // ====================================================
-    const CLOUDINARY_CLOUD_NAME = "dafthaop";[cite: 6]
-    const CLOUDINARY_UPLOAD_PRESET = "kuchipu";[cite: 6]
+    // 2. Cloudinary Credentials (Strictly valid JavaScript strings)
+    const CLOUDINARY_CLOUD_NAME = "dafthaop";
+    const CLOUDINARY_UPLOAD_PRESET = "kuchipu";
 
-    // Cache of current items for editing
     const memoryCache = {};
-
-    // ====================================================
-    // NAVIGATION & MODAL CONTROLS
-    // ====================================================
-    function goBack() {
-      if (document.referrer && document.referrer.includes(window.location.host)) {
-        window.history.back();
-      } else {
-        window.location.href = "index.html";
-      }
-    }
 
     function toggleUploadDrawer() {
       document.getElementById('upload-drawer').classList.toggle('hidden');
@@ -287,9 +268,7 @@
       document.getElementById('edit-modal').classList.add('hidden');
     }
 
-    // ====================================================
-    // 3. AUTO-GPS LOCATION DETECTOR
-    // ====================================================
+    // 3. Auto-GPS Location Detector
     function detectGPSLocation(targetInputId) {
       const locInput = document.getElementById(targetInputId);
       if (!navigator.geolocation) {
@@ -314,9 +293,7 @@
       );
     }
 
-    // ====================================================
-    // 4. CLOUDINARY DIRECT UPLOADER
-    // ====================================================
+    // 4. Cloudinary Direct Uploader
     async function uploadToCloudinary(file) {
       const formData = new FormData();
       formData.append("file", file);
@@ -336,9 +313,7 @@
       return data.secure_url;
     }
 
-    // ====================================================
-    // 5. ADD NEW MEMORY
-    // ====================================================
+    // 5. Add New Memory
     async function saveMemory() {
       const fileInput = document.getElementById('photo-input');
       const caption = document.getElementById('caption-input').value.trim();
@@ -392,9 +367,7 @@
       }
     }
 
-    // ====================================================
-    // 6. UPDATE EXISTING MEMORY (Edit)
-    // ====================================================
+    // 6. Update Existing Memory
     async function saveEditedMemory() {
       const docId = document.getElementById('edit-doc-id').value;
       const caption = document.getElementById('edit-caption-input').value.trim();
@@ -439,9 +412,7 @@
       }
     }
 
-    // ====================================================
-    // 7. DELETE MEMORY
-    // ====================================================
+    // 7. Delete Memory
     async function deleteMemory(docId) {
       const confirmDelete = confirm("Are you sure you want to remove this memory from our scrapbook?");
       if (!confirmDelete) return;
@@ -459,9 +430,7 @@
       return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
     }
 
-    // ====================================================
-    // 8. REAL-TIME SYNC (Loads all memories safely)
-    // ====================================================
+    // 8. Real-Time Sync Listener
     db.collection("scrapbook")
       .onSnapshot((snapshot) => {
         const grid = document.getElementById('scrapbook-grid');
@@ -478,7 +447,6 @@
         const docs = [];
         snapshot.forEach((doc) => docs.push({ id: doc.id, data: doc.data() }));
 
-        // Safe in-memory sort so missing timestamps don't hide documents
         docs.sort((a, b) => {
           const tA = a.data.timestamp ? (a.data.timestamp.seconds || 0) : 0;
           const tB = b.data.timestamp ? (b.data.timestamp.seconds || 0) : 0;
@@ -492,7 +460,6 @@
           polaroid.className = "polaroid flex flex-col justify-between";
           
           polaroid.innerHTML = `
-            <!-- Clickable Picture & Note Area -->
             <div onclick="openLightbox('${item.imageUrl}', '${escapeHtmlQuotes(item.caption)}')" class="cursor-pointer">
               <div class="w-full h-64 overflow-hidden rounded-lg bg-pink-50 mb-3">
                 <img src="${item.imageUrl}" alt="Memory" class="w-full h-full object-cover">
@@ -503,7 +470,6 @@
               </div>
             </div>
 
-            <!-- Bottom Action Toolbar -->
             <div class="pt-2 mt-2 border-t border-pink-100 flex items-center justify-end gap-2">
               <button 
                 type="button"
@@ -533,9 +499,7 @@
           </div>`;
       });
 
-    // ====================================================
-    // 9. FLOATING HEARTS & LIGHTBOX
-    // ====================================================
+    // 9. Floating Hearts & Lightbox
     function createFloatingHearts() {
       const container = document.getElementById('hearts-container');
       const heartEmojis = ['❤️', '✨', '🌸', '💖', '🫶🏻', '🤍', '💌'];
