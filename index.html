@@ -1324,11 +1324,10 @@
           reg = await navigator.serviceWorker.ready;
         }
 
-        // Put your raw string key here (trimmed of any accidental whitespaces):
         const rawVapidKey = "BFrg-pt7RhB_-o6gfUPQbfobw8k00qbUPb_VqhyexFNOOQmxznbuGGHjFONjVn0Iy-mhF6elIVE1IsX0LU89pMc".trim();
 
         const token = await messaging.getToken({
-          vapidKey: rawVapidKey,
+          vapidKey: urlBase64ToUint8Array(rawVapidKey),
           serviceWorkerRegistration: reg
         });
 
