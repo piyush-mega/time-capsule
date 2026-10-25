@@ -128,8 +128,8 @@
 
       <div class="space-y-4">
         <div>
-          <label class="block text-xs font-bold text-stone-600 mb-1">Select Photo / Take Picture</label>
-          <input type="file" id="photo-input" accept="image/*" class="w-full text-xs text-stone-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-pink-100 file:text-deeppink hover:file:bg-pink-200 cursor-pointer" />
+          <label class="block text-xs font-bold text-stone-600 mb-1">Select Photo or Short Video</label>
+          <input type="file" id="photo-input" accept="image/*,video/*" class="w-full text-xs text-stone-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-pink-100 file:text-deeppink hover:file:bg-pink-200 cursor-pointer" />
         </div>
 
         <div>
@@ -171,8 +171,8 @@
             <div class="w-full h-36 rounded-xl overflow-hidden bg-pink-50 mb-2 border border-pink-100">
               <img id="edit-preview-img" src="" class="w-full h-full object-cover" />
             </div>
-            <label class="block text-[11px] text-stone-500 mb-1">Change photo (optional):</label>
-            <input type="file" id="edit-photo-input" accept="image/*" class="w-full text-xs text-stone-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-pink-100 file:text-deeppink hover:file:bg-pink-200 cursor-pointer" />
+            <label class="block text-[11px] text-stone-500 mb-1">Change photo or video (optional):</label>
+            <input type="file" id="edit-photo-input" accept="image/*,video/*" class="w-full text-xs text-stone-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-pink-100 file:text-deeppink hover:file:bg-pink-200 cursor-pointer" />
           </div>
 
           <div>
@@ -215,10 +215,11 @@
 
   </div>
 
-  <!-- Zoom Modal (Lightbox) -->
+  <!-- Zoom Modal (Lightbox for Photos & Videos) -->
   <div id="lightbox" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-4 cursor-pointer" onclick="closeLightbox()">
     <div class="relative max-w-2xl max-h-[85vh] p-3 bg-white rounded-2xl shadow-2xl flex flex-col items-center" onclick="event.stopPropagation()">
-      <img id="lightbox-img" src="" alt="Enlarged Memory" class="max-h-[68vh] w-auto rounded-xl object-contain">
+      <img id="lightbox-img" src="" alt="Enlarged Memory" class="hidden max-h-[68vh] w-auto rounded-xl object-contain">
+      <video id="lightbox-video" src="" controls playsinline class="hidden max-h-[68vh] w-auto rounded-xl object-contain bg-black"></video>
       <p id="lightbox-caption" class="font-handwritten text-2xl text-stone-800 mt-3 text-center"></p>
       <button type="button" onclick="closeLightbox()" class="mt-2 text-xs text-stone-400 underline cursor-pointer">Tap outside to close</button>
     </div>
@@ -347,13 +348,25 @@ db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
     }
 
     async function uploadToCloudinary(file) {
-      const compressedBlob = await compressImageBeforeUpload(file);
+      const isVideo = file.type.startsWith("video/");
+      const endpoint = isVideo 
+        ? `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/upload`
+        : `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
 
       const formData = new FormData();
-      formData.append("file", compressedBlob, "memory.webp");
+
+      if (isVideo) {
+        // Videos are uploaded directly without canvas compression
+        formData.append("file", file);
+      } else {
+        // Photos are compressed in-browser first
+        const compressedBlob = await compressImageBeforeUpload(file);
+        formData.append("file", compressedBlob, "memory.webp");
+      }
+
       formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
-      const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+      const response = await fetch(endpoint, {
         method: "POST",
         body: formData
       });
@@ -364,10 +377,12 @@ db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
       }
 
       const data = await response.json();
-      return data.secure_url;
+      return {
+        url: data.secure_url,
+        mediaType: isVideo ? "video" : "image"
+      };
     }
-
-    // 5. Add New Memory
+    //SaveMemory File
     async function saveMemory() {
       const fileInput = document.getElementById('photo-input');
       const caption = document.getElementById('caption-input').value.trim();
@@ -376,7 +391,7 @@ db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
       const status = document.getElementById('upload-status');
 
       if (!fileInput.files[0]) {
-        alert("Please select a picture first!");
+        alert("Please select a picture or video first!");
         return;
       }
 
@@ -384,15 +399,18 @@ db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
       btn.disabled = true;
       btn.innerText = "Uploading to Cloud...";
       status.classList.remove('hidden');
-      status.innerText = "Uploading photo to Cloudinary... ⏳";
+      status.innerText = file.type.startsWith("video/") 
+        ? "Uploading video to Cloudinary... ⏳" 
+        : "Compressing & saving photo... ⏳";
 
       try {
-        const imageUrl = await uploadToCloudinary(file);
+        const { url: mediaUrl, mediaType } = await uploadToCloudinary(file);
 
         status.innerText = "Saving to scrapbook database... ⏳";
 
         await db.collection("scrapbook").add({
-          imageUrl: imageUrl,
+          imageUrl: mediaUrl,
+          mediaType: mediaType,
           caption: caption || "Favorite moments ❤️",
           location: location,
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -437,14 +455,18 @@ db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
 
       try {
         let finalImage = document.getElementById('edit-existing-image').value;
+        let finalMediaType = memoryCache[docId]?.mediaType || (finalImage.endsWith(".mp4") || finalImage.endsWith(".mov") ? "video" : "image");
 
         if (fileInput.files && fileInput.files[0]) {
-          status.innerText = "Uploading new photo to Cloudinary... ⏳";
-          finalImage = await uploadToCloudinary(fileInput.files[0]);
+          status.innerText = "Uploading new media to Cloudinary... ⏳";
+          const res = await uploadToCloudinary(fileInput.files[0]);
+          finalImage = res.url;
+          finalMediaType = res.mediaType;
         }
 
         await db.collection("scrapbook").doc(docId).update({
           imageUrl: finalImage,
+          mediaType: finalMediaType,
           caption: caption || "Favorite moments ❤️",
           location: location
         });
@@ -520,23 +542,30 @@ db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
 
         docs.forEach(({ id: docId, data: item }) => {
           memoryCache[docId] = item;
-          const displayUrl = getSmartImageUrl(item.imageUrl);
+          const isVideo = item.mediaType === 'video' || (item.imageUrl && (item.imageUrl.endsWith('.mp4') || item.imageUrl.endsWith('.mov')));
+
+          const mediaPreviewHtml = isVideo
+            ? `
+              <div class="relative w-full h-64 overflow-hidden rounded-lg bg-black mb-3 flex items-center justify-center">
+                <video src="${item.imageUrl}" autoplay loop muted playsinline class="w-full h-full object-cover pointer-events-none"></video>
+                <span class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/60 text-white text-[10px] font-bold tracking-wide backdrop-blur-sm">
+                  ▶ Video
+                </span>
+              </div>
+            `
+            : `
+              <div class="w-full h-64 overflow-hidden rounded-lg bg-pink-50 mb-3 flex items-center justify-center">
+                <img src="${item.imageUrl}" alt="Memory" loading="lazy" decoding="async" class="w-full h-full object-cover">
+              </div>
+            `;
 
           const polaroid = document.createElement('div');
           polaroid.className = "polaroid flex flex-col justify-between";
           
           polaroid.innerHTML = `
-            <!-- Clickable Picture & Note Area -->
-            <div onclick="openLightbox('${item.imageUrl}', '${escapeHtmlQuotes(item.caption)}')" class="cursor-pointer">
-              <div class="w-full h-64 overflow-hidden rounded-lg bg-pink-50 mb-3 flex items-center justify-center">
-                <img 
-                  src="${displayUrl}" 
-                  alt="Memory" 
-                  loading="lazy" 
-                  decoding="async"
-                  class="w-full h-full object-cover transition-opacity duration-300"
-                >
-              </div>
+            <!-- Clickable Media Area -->
+            <div onclick="openLightbox('${item.imageUrl}', '${escapeHtmlQuotes(item.caption)}', ${isVideo})" class="cursor-pointer">
+              ${mediaPreviewHtml}
               <p class="font-handwritten text-2xl text-stone-800 text-center leading-snug">${item.caption || "Special Memory"}</p>
               <div class="flex items-center justify-center gap-1 text-[11px] text-deeppink font-semibold mt-1 mb-2">
                 <span>${item.location || "Everywhere with you"}</span>
@@ -590,8 +619,22 @@ db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
     }
     createFloatingHearts();
 
-    function openLightbox(imgSrc, captionText) {
-      document.getElementById('lightbox-img').src = imgSrc;
+    function openLightbox(mediaSrc, captionText, isVideo = false) {
+      const imgEl = document.getElementById('lightbox-img');
+      const vidEl = document.getElementById('lightbox-video');
+
+      if (isVideo) {
+        imgEl.classList.add('hidden');
+        vidEl.classList.remove('hidden');
+        vidEl.src = mediaSrc;
+        vidEl.play().catch(() => {});
+      } else {
+        vidEl.pause();
+        vidEl.classList.add('hidden');
+        imgEl.classList.remove('hidden');
+        imgEl.src = mediaSrc;
+      }
+
       document.getElementById('lightbox-caption').innerText = captionText;
       document.getElementById('lightbox').classList.remove('hidden');
 
@@ -601,6 +644,11 @@ db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
     }
 
     function closeLightbox() {
+      const vidEl = document.getElementById('lightbox-video');
+      if (vidEl) {
+        vidEl.pause();
+        vidEl.src = "";
+      }
       document.getElementById('lightbox').classList.add('hidden');
     }
   </script>
