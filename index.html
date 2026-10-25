@@ -1324,10 +1324,9 @@
           reg = await navigator.serviceWorker.ready;
         }
 
-        const rawVapidKey = "BFrg-pt7RhB_-o6gfUPQbfobw8k00qbUPb_VqhyexFNOOQmxznbuGGHjFONjVn0Iy-mhF6elIVE1IsX0LU89pMc".trim();
-
+        // Firebase compat SDK handles the raw VAPID key string directly:
         const token = await messaging.getToken({
-          vapidKey: urlBase64ToUint8Array(rawVapidKey),
+          vapidKey: "BFrg-pt7RhB_-o6gfUPQbfobw8k00qbUPb_VqhyexFNOOQmxznbuGGHjFONjVn0Iy-mhF6elIVE1IsX0LU89pMc",
           serviceWorkerRegistration: reg
         });
 
