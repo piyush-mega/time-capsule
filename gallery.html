@@ -245,6 +245,12 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // ====================================================
+    // 2. CLOUDINARY CONFIGURATION (25 GB Free Storage)
+    // ====================================================
+    const CLOUDINARY_CLOUD_NAME = "dafthaop";[cite: 6]
+    const CLOUDINARY_UPLOAD_PRESET = "kuchipu";[cite: 6]
+
     // Cache of current items for editing
     const memoryCache = {};
 
@@ -282,7 +288,7 @@
     }
 
     // ====================================================
-    // 2. AUTO-GPS LOCATION DETECTOR
+    // 3. AUTO-GPS LOCATION DETECTOR
     // ====================================================
     function detectGPSLocation(targetInputId) {
       const locInput = document.getElementById(targetInputId);
@@ -309,34 +315,29 @@
     }
 
     // ====================================================
-    // 3. IMAGE COMPRESSION (Base64 for Free Firestore)
+    // 4. CLOUDINARY DIRECT UPLOADER
     // ====================================================
-    function processImage(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-          const img = new Image();
-          img.src = event.target.result;
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 800;
-            const scaleSize = MAX_WIDTH / img.width;
-            canvas.width = MAX_WIDTH;
-            canvas.height = img.height * scaleSize;
+    async function uploadToCloudinary(file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            resolve(canvas.toDataURL('image/jpeg', 0.7));
-          };
-          img.onerror = (err) => reject(err);
-        };
-        reader.onerror = (err) => reject(err);
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+        method: "POST",
+        body: formData
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error ? errorData.error.message : "Cloudinary upload failed");
+      }
+
+      const data = await response.json();
+      return data.secure_url;
     }
 
     // ====================================================
-    // 4. ADD NEW MEMORY
+    // 5. ADD NEW MEMORY
     // ====================================================
     async function saveMemory() {
       const fileInput = document.getElementById('photo-input');
@@ -352,15 +353,17 @@
 
       const file = fileInput.files[0];
       btn.disabled = true;
-      btn.innerText = "Saving photo...";
+      btn.innerText = "Uploading to Cloud...";
       status.classList.remove('hidden');
-      status.innerText = "Adding to your scrapbook... ⏳";
+      status.innerText = "Uploading photo to Cloudinary... ⏳";
 
       try {
-        const base64Image = await processImage(file);
+        const imageUrl = await uploadToCloudinary(file);
+
+        status.innerText = "Saving to scrapbook database... ⏳";
 
         await db.collection("scrapbook").add({
-          imageUrl: base64Image,
+          imageUrl: imageUrl,
           caption: caption || "Favorite moments ❤️",
           location: location,
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -390,7 +393,7 @@
     }
 
     // ====================================================
-    // 5. UPDATE EXISTING MEMORY (Edit)
+    // 6. UPDATE EXISTING MEMORY (Edit)
     // ====================================================
     async function saveEditedMemory() {
       const docId = document.getElementById('edit-doc-id').value;
@@ -409,7 +412,8 @@
         let finalImage = document.getElementById('edit-existing-image').value;
 
         if (fileInput.files && fileInput.files[0]) {
-          finalImage = await processImage(fileInput.files[0]);
+          status.innerText = "Uploading new photo to Cloudinary... ⏳";
+          finalImage = await uploadToCloudinary(fileInput.files[0]);
         }
 
         await db.collection("scrapbook").doc(docId).update({
@@ -436,7 +440,7 @@
     }
 
     // ====================================================
-    // 6. DELETE MEMORY
+    // 7. DELETE MEMORY
     // ====================================================
     async function deleteMemory(docId) {
       const confirmDelete = confirm("Are you sure you want to remove this memory from our scrapbook?");
@@ -456,7 +460,7 @@
     }
 
     // ====================================================
-    // 7. REAL-TIME SYNC (With Visible Edit & Delete Toolbar)
+    // 8. REAL-TIME SYNC (With Visible Edit & Delete Toolbar)
     // ====================================================
     db.collection("scrapbook")
       .orderBy("timestamp", "desc")
@@ -517,7 +521,7 @@
       });
 
     // ====================================================
-    // 8. FLOATING HEARTS & LIGHTBOX
+    // 9. FLOATING HEARTS & LIGHTBOX
     // ====================================================
     function createFloatingHearts() {
       const container = document.getElementById('hearts-container');
