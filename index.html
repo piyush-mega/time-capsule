@@ -210,7 +210,76 @@
         To My Kuchipu, My Partner & My Favorite Person
       </p>
     </header>
+<!-- ==================================================== -->
+<!-- LIVE HEARTBEAT & DISTANCE RADAR WIDGET -->
+<!-- ==================================================== -->
+<section class="max-w-xl mx-auto my-8 px-4">
+  <div class="relative overflow-hidden bg-white/90 backdrop-blur-md rounded-3xl p-6 shadow-xl border border-pink-200">
+    
+    <!-- User Switcher & Status Pill -->
+    <div class="flex items-center justify-between mb-4">
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-pink-50 border border-pink-200 rounded-full text-[11px] font-bold text-deeppink">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="radar-status">Live Connected</span>
+      </div>
 
+      <!-- Quick Selector for Who's Phone this is -->
+      <div class="flex items-center gap-1 text-xs font-bold text-stone-500">
+        <span>I am:</span>
+        <button id="user-btn-piyush" onclick="setUser('piyush')" class="px-2 py-0.5 rounded-full border border-pink-200 transition">Piyush</button>
+        <button id="user-btn-sanjana" onclick="setUser('sanjana')" class="px-2 py-0.5 rounded-full border border-pink-200 transition">Sanjana</button>
+      </div>
+    </div>
+
+    <!-- Distance Display -->
+    <div class="text-center my-4">
+      <p class="text-xs uppercase tracking-widest text-stone-400 font-semibold mb-1">Distance Apart</p>
+      <div class="flex items-center justify-center gap-3">
+        <span class="text-2xl">📍</span>
+        <h2 id="radar-distance-text" class="text-3xl sm:text-4xl font-serifTitle font-bold text-pink-900 tracking-tight">
+          Calculating...
+        </h2>
+        <span class="text-2xl">💌</span>
+      </div>
+      <p id="radar-proximity-note" class="text-xs text-deeppink font-semibold mt-1">
+        Tap below to update your location
+      </p>
+    </div>
+
+    <!-- Location Share + Send Heartbeat Controls -->
+    <div class="grid grid-cols-2 gap-3 mt-6">
+      <button 
+        type="button" 
+        onclick="updateMyLocation()" 
+        id="btn-update-loc" 
+        class="py-3 px-4 bg-pink-100 hover:bg-pink-200 text-deeppink font-bold text-xs rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer"
+      >
+        <span>📍</span> Update My GPS
+      </button>
+
+      <button 
+        type="button" 
+        onclick="sendHeartbeat()" 
+        id="btn-send-heartbeat" 
+        class="py-3 px-4 bg-gradient-to-r from-pink-500 to-deeppink text-white font-bold text-xs rounded-2xl shadow-md hover:brightness-105 active:scale-95 transition flex items-center justify-center gap-1.5 cursor-pointer"
+      >
+        <span>💓</span> Send Heartbeat
+      </button>
+    </div>
+
+    <p id="heartbeat-sent-hint" class="text-[11px] text-center text-pink-500 mt-2 font-semibold hidden">
+      Heartbeat sent! Her phone is pulsing now ✨
+    </p>
+  </div>
+</section>
+
+<!-- Full-Screen Pulse Overlay (Triggers when a heartbeat is received) -->
+<div id="heartbeat-overlay" class="pointer-events-none fixed inset-0 z-50 flex items-center justify-center opacity-0 transition-opacity duration-300">
+  <div class="absolute inset-0 bg-rose-500/20 backdrop-blur-[2px]"></div>
+  <div id="pulse-heart-icon" class="relative text-7xl sm:text-9xl transform scale-50 transition-transform duration-300 select-none">
+    💖
+  </div>
+</div>
     <!-- SECTION 1: LIVE "DAYS TOGETHER" COUNTER -->
     <div class="w-full bg-white/80 backdrop-blur-md rounded-3xl p-6 sm:p-10 shadow-xl border border-pink-100 text-center mb-10">
       <span class="text-xs font-bold text-deeppink uppercase tracking-wider bg-pink-100 px-3 py-1 rounded-full">
@@ -695,6 +764,226 @@
           origin: { y: 0.7 }
         });
       }
+    }
+  </script>
+  <!-- Firebase & Heartbeat Logic -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCM1Ut7EPj1NXsHV5t3MH8c0BJK8glj6ok",
+      authDomain: "time-capsule-kuchipu.firebaseapp.com",
+      projectId: "time-capsule-kuchipu",
+      storageBucket: "time-capsule-kuchipu.firebasestorage.app",
+      messagingSenderId: "199495526518",
+      appId: "1:199495526518:web:2fc4e751309f442f289757",
+      measurementId: "G-TDKCYZ39VY"
+    };
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    let currentUser = localStorage.getItem("kuchipu_user") || "piyush";
+
+    function setUser(user) {
+      currentUser = user;
+      localStorage.setItem("kuchipu_user", user);
+      updateUserButtons();
+    }
+
+    function updateUserButtons() {
+      const btnP = document.getElementById("user-btn-piyush");
+      const btnS = document.getElementById("user-btn-sanjana");
+      if (!btnP || !btnS) return;
+      if (currentUser === "piyush") {
+        btnP.className = "px-2.5 py-0.5 rounded-full bg-deeppink text-white font-bold text-xs";
+        btnS.className = "px-2.5 py-0.5 rounded-full border border-pink-200 text-stone-500 text-xs";
+      } else {
+        btnS.className = "px-2.5 py-0.5 rounded-full bg-deeppink text-white font-bold text-xs";
+        btnP.className = "px-2.5 py-0.5 rounded-full border border-pink-200 text-stone-500 text-xs";
+      }
+    }
+    updateUserButtons();
+
+    function playHeartbeatSound() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+
+        const pulse = (time) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(65, time);
+          osc.frequency.exponentialRampToValueAtTime(30, time + 0.15);
+
+          gain.gain.setValueAtTime(1, time);
+          gain.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(time);
+          osc.stop(time + 0.16);
+        };
+
+        const now = ctx.currentTime;
+        pulse(now);
+        pulse(now + 0.22);
+      } catch (e) {
+        console.log("Audio feedback muted by system", e);
+      }
+    }
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return (R * c).toFixed(1);
+    }
+
+    function updateMyLocation() {
+      const btn = document.getElementById("btn-update-loc");
+      if (!navigator.geolocation) {
+        alert("GPS is not available on this browser.");
+        return;
+      }
+
+      btn.innerText = "Reading GPS... ⏳";
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            await db.collection("radar").doc(currentUser).set({
+              lat: pos.coords.latitude,
+              lon: pos.coords.longitude,
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            btn.innerText = "Location Updated ✨";
+            setTimeout(() => { btn.innerHTML = "<span>📍</span> Update My GPS"; }, 2000);
+          } catch (err) {
+            alert("Error saving location: " + err.message);
+            btn.innerHTML = "<span>📍</span> Update My GPS";
+          }
+        },
+        (err) => {
+          alert("Please enable Safari location permissions in iPhone Settings.");
+          btn.innerHTML = "<span>📍</span> Update My GPS";
+        },
+        { enableHighAccuracy: true }
+      );
+    }
+
+    async function sendHeartbeat() {
+      const btn = document.getElementById("btn-send-heartbeat");
+      const hint = document.getElementById("heartbeat-sent-hint");
+      btn.disabled = true;
+
+      try {
+        playHeartbeatSound();
+
+        await db.collection("radar").doc("heartbeat").set({
+          sender: currentUser,
+          sentAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        hint.classList.remove("hidden");
+        setTimeout(() => {
+          hint.classList.add("hidden");
+          btn.disabled = false;
+        }, 3000);
+
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 20, spread: 45, origin: { y: 0.8 } });
+        }
+      } catch (err) {
+        console.error(err);
+        btn.disabled = false;
+      }
+    }
+
+    db.collection("radar").onSnapshot((snapshot) => {
+      let pCoords = null;
+      let sCoords = null;
+
+      snapshot.forEach((doc) => {
+        if (doc.id === "piyush") pCoords = doc.data();
+        if (doc.id === "sanjana") sCoords = doc.data();
+      });
+
+      const distText = document.getElementById("radar-distance-text");
+      const proxNote = document.getElementById("radar-proximity-note");
+
+      if (distText && proxNote) {
+        if (pCoords && sCoords && pCoords.lat && sCoords.lat) {
+          const km = calculateDistance(pCoords.lat, pCoords.lon, sCoords.lat, sCoords.lon);
+          distText.innerText = `${km} km apart`;
+
+          if (km < 0.1) {
+            proxNote.innerText = "Right next to each other! ❤️";
+          } else if (km < 5) {
+            proxNote.innerText = "In the same neighborhood 🌸";
+          } else {
+            proxNote.innerText = "Different places, connected at heart ✈️";
+          }
+        } else {
+          distText.innerText = "Waiting for GPS";
+          proxNote.innerText = "Both should tap 'Update My GPS' once 📍";
+        }
+      }
+    });
+
+    let initialHeartbeatLoad = true;
+    db.collection("radar").doc("heartbeat").onSnapshot((doc) => {
+      if (initialHeartbeatLoad) {
+        initialHeartbeatLoad = false;
+        return;
+      }
+
+      if (!doc.exists) return;
+      const data = doc.data();
+
+      if (data.sender && data.sender !== currentUser) {
+        triggerHeartbeatFeedback();
+      }
+    });
+
+    function triggerHeartbeatFeedback() {
+      playHeartbeatSound();
+
+      const overlay = document.getElementById("heartbeat-overlay");
+      const heart = document.getElementById("pulse-heart-icon");
+
+      if (!overlay || !heart) return;
+
+      overlay.style.opacity = "1";
+      heart.style.transform = "scale(1.25)";
+
+      if (typeof confetti === 'function') {
+        confetti({ particleCount: 45, spread: 70, origin: { y: 0.5 } });
+      }
+
+      setTimeout(() => {
+        heart.style.transform = "scale(0.95)";
+      }, 200);
+
+      setTimeout(() => {
+        heart.style.transform = "scale(1.2)";
+      }, 400);
+
+      setTimeout(() => {
+        overlay.style.opacity = "0";
+        heart.style.transform = "scale(0.5)";
+      }, 1200);
     }
   </script>
 </body>
