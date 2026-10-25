@@ -460,7 +460,7 @@
     }
 
     // ====================================================
-    // 8. REAL-TIME SYNC (With Visible Edit & Delete Toolbar)
+    // 8. REAL-TIME SYNC (Loads all memories safely)
     // ====================================================
     db.collection("scrapbook")
       .onSnapshot((snapshot) => {
@@ -475,9 +475,10 @@
           return;
         }
 
-        // Sort items by timestamp if available, placing newest first
         const docs = [];
         snapshot.forEach((doc) => docs.push({ id: doc.id, data: doc.data() }));
+
+        // Safe in-memory sort so missing timestamps don't hide documents
         docs.sort((a, b) => {
           const tA = a.data.timestamp ? (a.data.timestamp.seconds || 0) : 0;
           const tB = b.data.timestamp ? (b.data.timestamp.seconds || 0) : 0;
@@ -528,7 +529,7 @@
         console.error("Firestore read error: ", error);
         document.getElementById('scrapbook-grid').innerHTML = `
           <div class="col-span-full text-center py-12 text-rose-500 text-sm font-semibold">
-            Unable to load memories (${error.message}). Check Firestore rules.
+            Unable to load memories: ${error.message}
           </div>`;
       });
 
