@@ -1294,6 +1294,22 @@
     ? firebase.messaging() 
     : null;
 
+  // Helper to convert VAPID base64 string to Uint8Array for WebKit/Safari
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding)
+      .replace(/\-/g, '+')
+      .replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
   async function requestNotificationPermission() {
     if (!('Notification' in window)) {
       alert("Push notifications require this web app to be added to your iPhone Home Screen first (Share → Add to Home Screen)!");
@@ -1303,29 +1319,19 @@
     try {
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
-        if (!messaging) {
-          alert("Messaging service is not ready. Make sure service worker is registered.");
-          return;
-        }
-
         let reg = null;
         if ('serviceWorker' in navigator) {
           reg = await navigator.serviceWorker.ready;
         }
 
+        // Put your raw string key here (trimmed of any accidental whitespaces):
+        const rawVapidKey = "BFrg-pt7RhB_-o6gfUPQbfobw8k00qbUPb_VqhyexFNOOQmxznbuGGHjFONjVn0Iy-mhF6elIVE1IsX0LU89pMc".trim();
+
         const token = await messaging.getToken({
-          vapidKey: "BFrg-pt7RhB_-o6gfUPQbfobw8k00qbUPb_VqhyexFNOOQmxznbuGGHjFONjVn0Iy-mhF6elIVE1IsX0LU89pMc",
+          vapidKey: rawVapidKey,
           serviceWorkerRegistration: reg
         });
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' })
-      .then((registration) => {
-        console.log('Service Worker registered successfully:', registration.scope);
-      })
-      .catch((err) => {
-        console.error('Service Worker registration failed:', err);
-      });
-  }
+
         if (token) {
           const currentRole = (typeof currentUser !== "undefined" && currentUser) ? currentUser : "sanjana";
           await db.collection("deviceTokens").doc(currentRole).set({
