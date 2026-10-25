@@ -307,6 +307,66 @@
         </p>
       </div>
     </section>
+   <!-- ==================================================== -->
+  <!-- SYNCHRONIZED FINGERPRINT BOND (LIVE DUAL TOUCH) -->
+  <!-- ==================================================== -->
+  <section class="w-full max-w-xl mx-auto my-6 px-2 select-none">
+    <div class="relative overflow-hidden bg-white/95 backdrop-blur-md rounded-3xl p-6 shadow-xl border border-pink-200 text-center">
+      
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-pink-50 border border-pink-200 rounded-full text-[11px] font-bold text-deeppink mb-3">
+        <span>✨ Synchronized Touch Aura</span>
+      </div>
+
+      <h3 class="font-serifTitle font-bold text-2xl text-pink-900 mb-1">Fingerprint Bond</h3>
+      <p id="bond-status-text" class="text-xs text-stone-500 font-medium mb-6">
+        Place your thumb on the scanner together
+      </p>
+
+      <!-- Fingerprint Touch Pad -->
+      <div class="relative flex items-center justify-center my-4">
+        <!-- Outer Glowing Aura (Visible during sync) -->
+        <div id="bond-aura" class="absolute w-44 h-44 rounded-full bg-gradient-to-r from-pink-400 via-rose-500 to-deeppink opacity-0 blur-2xl transition-all duration-700 pointer-events-none scale-75"></div>
+
+        <!-- Ring Pulse Animation -->
+        <div id="bond-ring" class="absolute w-32 h-32 rounded-full border-2 border-pink-400 opacity-0 transition-all pointer-events-none"></div>
+
+        <!-- Main Touch Target -->
+        <button 
+          type="button"
+          id="fingerprint-pad"
+          class="relative z-10 w-28 h-28 rounded-full bg-gradient-to-b from-pink-50 to-pink-100 border-2 border-pink-300 shadow-inner flex flex-col items-center justify-center transition-transform active:scale-90 cursor-pointer touch-none select-none"
+        >
+          <!-- Fingerprint SVG Icon -->
+          <svg id="fingerprint-icon" class="w-14 h-14 text-pink-400 transition-colors duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>
+            <path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>
+            <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/>
+            <path d="M2 12a10 10 0 0 1 18-6"/>
+            <path d="M2 16h.01"/>
+            <path d="M21.8 16c.2-2 .131-5.354 0-6"/>
+            <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/>
+            <path d="M8.65 22c.21-.66.45-1.32.57-2"/>
+            <path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>
+          </svg>
+          <span id="fingerprint-prompt" class="text-[10px] font-bold text-deeppink tracking-wider uppercase mt-1">Hold Here</span>
+        </button>
+      </div>
+
+      <!-- Active Indicators for Each Partner -->
+      <div class="flex justify-center items-center gap-6 mt-4 text-xs font-bold text-stone-600">
+        <div class="flex items-center gap-1.5">
+          <span id="indicator-piyush" class="w-2.5 h-2.5 rounded-full bg-stone-300 transition-colors duration-300"></span>
+          <span>Piyush</span>
+        </div>
+        <span class="text-pink-300">•</span>
+        <div class="flex items-center gap-1.5">
+          <span id="indicator-sanjana" class="w-2.5 h-2.5 rounded-full bg-stone-300 transition-colors duration-300"></span>
+          <span>Sanjana</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
 
 <!-- Full-Screen Pulse Overlay (Triggers when a heartbeat is received) -->
 <div id="heartbeat-overlay" class="pointer-events-none fixed inset-0 z-50 flex items-center justify-center opacity-0 transition-opacity duration-300">
@@ -1047,6 +1107,178 @@
         heart.style.transform = "scale(0.5)";
       }, 1200);
     }
+    // ====================================================
+  // SYNCHRONIZED FINGERPRINT BOND LOGIC
+  // ====================================================
+  let isTouching = false;
+  let bondTouchInterval = null;
+  let heartbeatAudioInterval = null;
+
+  const pad = document.getElementById("fingerprint-pad");
+  const aura = document.getElementById("bond-aura");
+  const ring = document.getElementById("bond-ring");
+  const icon = document.getElementById("fingerprint-icon");
+  const promptText = document.getElementById("fingerprint-prompt");
+  const bondStatus = document.getElementById("bond-status-text");
+  const indPiyush = document.getElementById("indicator-piyush");
+  const indSanjana = document.getElementById("indicator-sanjana");
+
+  function startBondTouch() {
+    if (isTouching) return;
+    isTouching = true;
+
+    pad.classList.add("scale-95", "border-deeppink");
+    if (icon) {
+      icon.classList.remove("text-pink-400");
+      icon.classList.add("text-deeppink");
+    }
+    if (promptText) promptText.innerText = "Holding...";
+
+    const currentRole = (typeof currentUser !== "undefined" && currentUser) ? currentUser : "piyush";
+
+    db.collection("touchBond").doc(currentRole).set({
+      active: true,
+      lastTouch: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    bondTouchInterval = setInterval(() => {
+      db.collection("touchBond").doc(currentRole).set({
+        active: true,
+        lastTouch: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }, 1500);
+  }
+
+  function stopBondTouch() {
+    if (!isTouching) return;
+    isTouching = false;
+
+    clearInterval(bondTouchInterval);
+
+    pad.classList.remove("scale-95", "border-deeppink");
+    if (icon) {
+      icon.classList.add("text-pink-400");
+      icon.classList.remove("text-deeppink");
+    }
+    if (promptText) promptText.innerText = "Hold Here";
+
+    const currentRole = (typeof currentUser !== "undefined" && currentUser) ? currentUser : "piyush";
+    db.collection("touchBond").doc(currentRole).set({
+      active: false,
+      lastTouch: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }
+
+  // iOS Safari touch events + desktop mouse events
+  if (pad) {
+    pad.addEventListener("touchstart", (e) => { e.preventDefault(); startBondTouch(); }, { passive: false });
+    pad.addEventListener("touchend", (e) => { e.preventDefault(); stopBondTouch(); });
+    pad.addEventListener("touchcancel", (e) => { e.preventDefault(); stopBondTouch(); });
+
+    pad.addEventListener("mousedown", startBondTouch);
+    window.addEventListener("mouseup", stopBondTouch);
+  }
+
+  // Low-frequency heartbeat synth for WebKit browsers
+  function playAuraHeartbeatSound() {
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return;
+      const audioCtx = new AudioContextClass();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(65, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(32, audioCtx.currentTime + 0.3);
+
+      gain.gain.setValueAtTime(0.28, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.32);
+    } catch (e) {
+      // AudioContext fails silently if user hasn't tapped yet
+    }
+  }
+
+  // Real-time synchronization listener
+  let bothConnected = false;
+
+  db.collection("touchBond").onSnapshot((snapshot) => {
+    let piyushActive = false;
+    let sanjanaActive = false;
+
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      if (doc.id === "piyush" && data.active) piyushActive = true;
+      if (doc.id === "sanjana" && data.active) sanjanaActive = true;
+    });
+
+    if (indPiyush) indPiyush.className = `w-2.5 h-2.5 rounded-full transition-colors duration-300 ${piyushActive ? 'bg-emerald-400 ring-2 ring-emerald-200' : 'bg-stone-300'}`;
+    if (indSanjana) indSanjana.className = `w-2.5 h-2.5 rounded-full transition-colors duration-300 ${sanjanaActive ? 'bg-emerald-400 ring-2 ring-emerald-200' : 'bg-stone-300'}`;
+
+    if (piyushActive && sanjanaActive) {
+      if (!bothConnected) {
+        bothConnected = true;
+
+        if (aura) {
+          aura.classList.remove("opacity-0", "scale-75");
+          aura.classList.add("opacity-90", "scale-125");
+        }
+
+        if (ring) {
+          ring.classList.remove("opacity-0");
+          ring.classList.add("animate-ping", "opacity-80");
+        }
+
+        if (bondStatus) {
+          bondStatus.innerHTML = "<span class='text-deeppink font-bold animate-pulse'>✨ Synchronized Together Right Now! ❤️</span>";
+        }
+
+        playAuraHeartbeatSound();
+        heartbeatAudioInterval = setInterval(playAuraHeartbeatSound, 850);
+
+        if (typeof confetti === "function") {
+          confetti({
+            particleCount: 45,
+            spread: 70,
+            origin: { y: 0.7 }
+          });
+        }
+      }
+    } else {
+      if (bothConnected) {
+        bothConnected = false;
+        clearInterval(heartbeatAudioInterval);
+
+        if (aura) {
+          aura.classList.remove("opacity-90", "scale-125");
+          aura.classList.add("opacity-0", "scale-75");
+        }
+
+        if (ring) {
+          ring.classList.add("opacity-0");
+          ring.classList.remove("animate-ping", "opacity-80");
+        }
+
+        if (bondStatus) {
+          bondStatus.innerText = "Place your thumb on the scanner together";
+        }
+      } else if (bondStatus) {
+        if (piyushActive && !sanjanaActive) {
+          bondStatus.innerText = "Piyush is holding... waiting for Sanjana ⏳";
+        } else if (!piyushActive && sanjanaActive) {
+          bondStatus.innerText = "Sanjana is holding... waiting for Piyush ⏳";
+        } else {
+          bondStatus.innerText = "Place your thumb on the scanner together";
+        }
+      }
+    }
+  });
   </script>
 </body>
 </html>
