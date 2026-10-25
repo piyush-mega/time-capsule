@@ -213,65 +213,100 @@
 <!-- ==================================================== -->
 <!-- LIVE HEARTBEAT & DISTANCE RADAR WIDGET -->
 <!-- ==================================================== -->
-<section class="max-w-xl mx-auto my-8 px-4">
-  <div class="relative overflow-hidden bg-white/90 backdrop-blur-md rounded-3xl p-6 shadow-xl border border-pink-200">
-    
-    <!-- User Switcher & Status Pill -->
-    <div class="flex items-center justify-between mb-4">
-      <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-pink-50 border border-pink-200 rounded-full text-[11px] font-bold text-deeppink">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span id="radar-status">Live Connected</span>
+<!-- ==================================================== -->
+    <!-- VISUAL DISTANCE METER & HEARTBEAT RADAR -->
+    <!-- ==================================================== -->
+    <section class="w-full max-w-xl mx-auto my-6 px-2">
+      <div class="relative overflow-hidden bg-white/95 backdrop-blur-md rounded-3xl p-6 shadow-xl border border-pink-200">
+        
+        <!-- User Switcher & Status Pill -->
+        <div class="flex items-center justify-between mb-4">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-pink-50 border border-pink-200 rounded-full text-[11px] font-bold text-deeppink">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="radar-status">Live Connected</span>
+          </div>
+
+          <!-- Quick Profile Selector -->
+          <div class="flex items-center gap-1 text-xs font-bold text-stone-500">
+            <span>I am:</span>
+            <button type="button" id="user-btn-piyush" onclick="setUser('piyush')" class="px-2.5 py-0.5 rounded-full border border-pink-200 transition cursor-pointer">Piyush</button>
+            <button type="button" id="user-btn-sanjana" onclick="setUser('sanjana')" class="px-2.5 py-0.5 rounded-full border border-pink-200 transition cursor-pointer">Sanjana</button>
+          </div>
+        </div>
+
+        <!-- Distance Main Heading -->
+        <div class="text-center my-3">
+          <p class="text-[11px] uppercase tracking-widest text-stone-400 font-bold mb-1">Our Distance Meter</p>
+          <div class="flex items-center justify-center gap-2">
+            <h2 id="radar-distance-text" class="text-4xl sm:text-5xl font-serifTitle font-bold text-pink-900 tracking-tight">
+              Calculating...
+            </h2>
+          </div>
+          <p id="radar-proximity-note" class="text-xs text-deeppink font-semibold mt-1">
+            Locating both GPS positions...
+          </p>
+        </div>
+
+        <!-- ================= VISUAL DISTANCE TRACK ================= -->
+        <div class="my-6 px-2">
+          <!-- Avatars / Endpoints -->
+          <div class="flex justify-between items-center text-xs font-bold text-stone-600 mb-2">
+            <div class="flex items-center gap-1.5">
+              <span class="w-7 h-7 rounded-full bg-pink-100 border border-pink-300 flex items-center justify-center text-sm shadow-sm">👨🏻‍💻</span>
+              <span>Piyush</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span>Sanjana</span>
+              <span class="w-7 h-7 rounded-full bg-rose-100 border border-rose-300 flex items-center justify-center text-sm shadow-sm">👩🏻‍🦰</span>
+            </div>
+          </div>
+
+          <!-- Meter Progress Bar -->
+          <div class="relative w-full h-3 bg-pink-100 rounded-full overflow-visible border border-pink-200">
+            <!-- Dynamic Gradient Fill -->
+            <div id="meter-progress-bar" class="h-full bg-gradient-to-r from-pink-400 via-rose-500 to-deeppink rounded-full transition-all duration-700" style="width: 50%;"></div>
+            
+            <!-- Gliding Floating Heart Indicator -->
+            <div id="meter-heart-indicator" class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 text-lg transition-all duration-700 filter drop-shadow select-none cursor-pointer" style="left: 50%;" title="Tap to pulse">
+              💖
+            </div>
+          </div>
+
+          <!-- Milestone Labels -->
+          <div class="flex justify-between text-[10px] text-stone-400 font-semibold mt-2">
+            <span>0 km (Together)</span>
+            <span id="meter-label-mid">~700 km</span>
+            <span>1,500+ km</span>
+          </div>
+        </div>
+        <!-- ========================================================= -->
+
+        <!-- Location Share + Send Heartbeat Controls -->
+        <div class="grid grid-cols-2 gap-3 mt-4">
+          <button 
+            type="button" 
+            onclick="updateMyLocation()" 
+            id="btn-update-loc" 
+            class="py-3 px-4 bg-pink-100 hover:bg-pink-200 text-deeppink font-bold text-xs rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer"
+          >
+            <span>📍</span> Update My GPS
+          </button>
+
+          <button 
+            type="button" 
+            onclick="sendHeartbeat()" 
+            id="btn-send-heartbeat" 
+            class="py-3 px-4 bg-gradient-to-r from-pink-500 to-deeppink text-white font-bold text-xs rounded-2xl shadow-md hover:brightness-105 active:scale-95 transition flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <span>💓</span> Send Heartbeat
+          </button>
+        </div>
+
+        <p id="heartbeat-sent-hint" class="text-[11px] text-center text-pink-500 mt-2 font-semibold hidden">
+          Heartbeat sent! Her phone is pulsing now ✨
+        </p>
       </div>
-
-      <!-- Quick Selector for Who's Phone this is -->
-      <div class="flex items-center gap-1 text-xs font-bold text-stone-500">
-        <span>I am:</span>
-        <button id="user-btn-piyush" onclick="setUser('piyush')" class="px-2 py-0.5 rounded-full border border-pink-200 transition">Piyush</button>
-        <button id="user-btn-sanjana" onclick="setUser('sanjana')" class="px-2 py-0.5 rounded-full border border-pink-200 transition">Sanjana</button>
-      </div>
-    </div>
-
-    <!-- Distance Display -->
-    <div class="text-center my-4">
-      <p class="text-xs uppercase tracking-widest text-stone-400 font-semibold mb-1">Distance Apart</p>
-      <div class="flex items-center justify-center gap-3">
-        <span class="text-2xl">📍</span>
-        <h2 id="radar-distance-text" class="text-3xl sm:text-4xl font-serifTitle font-bold text-pink-900 tracking-tight">
-          Calculating...
-        </h2>
-        <span class="text-2xl">💌</span>
-      </div>
-      <p id="radar-proximity-note" class="text-xs text-deeppink font-semibold mt-1">
-        Tap below to update your location
-      </p>
-    </div>
-
-    <!-- Location Share + Send Heartbeat Controls -->
-    <div class="grid grid-cols-2 gap-3 mt-6">
-      <button 
-        type="button" 
-        onclick="updateMyLocation()" 
-        id="btn-update-loc" 
-        class="py-3 px-4 bg-pink-100 hover:bg-pink-200 text-deeppink font-bold text-xs rounded-2xl flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer"
-      >
-        <span>📍</span> Update My GPS
-      </button>
-
-      <button 
-        type="button" 
-        onclick="sendHeartbeat()" 
-        id="btn-send-heartbeat" 
-        class="py-3 px-4 bg-gradient-to-r from-pink-500 to-deeppink text-white font-bold text-xs rounded-2xl shadow-md hover:brightness-105 active:scale-95 transition flex items-center justify-center gap-1.5 cursor-pointer"
-      >
-        <span>💓</span> Send Heartbeat
-      </button>
-    </div>
-
-    <p id="heartbeat-sent-hint" class="text-[11px] text-center text-pink-500 mt-2 font-semibold hidden">
-      Heartbeat sent! Her phone is pulsing now ✨
-    </p>
-  </div>
-</section>
+    </section>
 
 <!-- Full-Screen Pulse Overlay (Triggers when a heartbeat is received) -->
 <div id="heartbeat-overlay" class="pointer-events-none fixed inset-0 z-50 flex items-center justify-center opacity-0 transition-opacity duration-300">
@@ -918,6 +953,7 @@
       }
     }
 
+   // Live Distance Meter Listener
     db.collection("radar").onSnapshot((snapshot) => {
       let pCoords = null;
       let sCoords = null;
@@ -929,22 +965,41 @@
 
       const distText = document.getElementById("radar-distance-text");
       const proxNote = document.getElementById("radar-proximity-note");
+      const progressBar = document.getElementById("meter-progress-bar");
+      const heartIcon = document.getElementById("meter-heart-indicator");
 
       if (distText && proxNote) {
         if (pCoords && sCoords && pCoords.lat && sCoords.lat) {
-          const km = calculateDistance(pCoords.lat, pCoords.lon, sCoords.lat, sCoords.lon);
-          distText.innerText = `${km} km apart`;
+          const km = parseFloat(calculateDistance(pCoords.lat, pCoords.lon, sCoords.lat, sCoords.lon));
+          distText.innerText = `${km.toFixed(1)} km`;
+
+          // Proximity meter calculation (Max scale 1500 km)
+          const MAX_KM = 1500;
+          let closenessPercent = Math.max(5, Math.min(100, Math.round(((MAX_KM - km) / MAX_KM) * 100)));
+
+          if (progressBar && heartIcon) {
+            progressBar.style.width = `${closenessPercent}%`;
+            heartIcon.style.left = `${closenessPercent}%`;
+          }
 
           if (km < 0.1) {
-            proxNote.innerText = "Right next to each other! ❤️";
-          } else if (km < 5) {
-            proxNote.innerText = "In the same neighborhood 🌸";
+            proxNote.innerText = "Side by side right now! 👩‍❤️‍👨";
+            if (heartIcon) heartIcon.innerText = "🥰";
+          } else if (km < 25) {
+            proxNote.innerText = "In the same city! 🌆";
+            if (heartIcon) heartIcon.innerText = "✨";
+          } else if (km < 300) {
+            proxNote.innerText = "Just a short drive away 🚗";
+            if (heartIcon) heartIcon.innerText = "💌";
           } else {
-            proxNote.innerText = "Different places, connected at heart ✈️";
+            proxNote.innerText = "Miles apart, always in heart ✈️";
+            if (heartIcon) heartIcon.innerText = "💖";
           }
         } else {
           distText.innerText = "Waiting for GPS";
-          proxNote.innerText = "Both should tap 'Update My GPS' once 📍";
+          proxNote.innerText = "Both tap 'Update My GPS' to calibrate the meter 📍";
+          if (progressBar) progressBar.style.width = "50%";
+          if (heartIcon) heartIcon.style.left = "50%";
         }
       }
     });
