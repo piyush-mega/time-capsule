@@ -1308,11 +1308,24 @@
           return;
         }
 
-        const token = await messaging.getToken({
-          // Replace with your Web Push Key (VAPID key) from Firebase Console -> Project Settings -> Cloud Messaging
-          vapidKey: "BFrg-pt7Rh8_-o6gfUPQbfoBw8k00qbUPb_VqhyexFN0QQmXznbu6GHjF0NjVn0Iy-mhF6e1IVE1IsXOLU09pMc"
-        });
+        let reg = null;
+        if ('serviceWorker' in navigator) {
+          reg = await navigator.serviceWorker.ready;
+        }
 
+        const token = await messaging.getToken({
+          vapidKey: "BFrg-pt7RhB_-o6gfUPQbfobw8k00qbUPb_VqhyexFNOOQmxznbuGGHjFONjVn0Iy-mhF6elIVE1IsX0LU89pMc",
+          serviceWorkerRegistration: reg
+        });
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' })
+      .then((registration) => {
+        console.log('Service Worker registered successfully:', registration.scope);
+      })
+      .catch((err) => {
+        console.error('Service Worker registration failed:', err);
+      });
+  }
         if (token) {
           const currentRole = (typeof currentUser !== "undefined" && currentUser) ? currentUser : "sanjana";
           await db.collection("deviceTokens").doc(currentRole).set({
@@ -1331,12 +1344,15 @@
   }
 
   // Register the service worker file
+  let swRegistration = null;
+
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./firebase-messaging-sw.js')
+    navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' })
       .then((registration) => {
-        if (messaging) messaging.useServiceWorker(registration);
+        swRegistration = registration;
+        console.log('Service Worker registered with scope:', registration.scope);
       })
-      .catch((err) => console.log('Service Worker registration note:', err));
+      .catch((err) => console.error('Service Worker registration failed:', err));
   }
   </script>
 </body>
